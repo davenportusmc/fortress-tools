@@ -27,12 +27,16 @@ def display_logo_and_title():
     
     with col1:
         try:
-            # Create container with black background for logo
-            st.markdown("""
-            <div style="background-color: #000000; padding: 12px; border-radius: var(--radius-md); display: flex; justify-content: center; align-items: center; margin-bottom: 8px;">
-                <img src="data:image/png;base64,{}" style="max-width: 80px; height: auto;">
-            </div>
-            """.format(_get_logo_base64(logo_path)), unsafe_allow_html=True)
+            # Display logo with black background using HTML
+            logo_base64 = _get_logo_base64(logo_path)
+            if logo_base64:
+                st.markdown(f"""
+                <div style="background-color: #000000; padding: 8px; border-radius: 8px; display: inline-block; margin-bottom: 8px;">
+                    <img src="data:image/png;base64,{logo_base64}" style="width: 60px; height: auto;">
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                st.markdown("**FORTRESS**")
         except Exception:
             # Fallback to text if logo fails to load
             st.markdown("**FORTRESS**")

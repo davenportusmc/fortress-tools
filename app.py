@@ -108,138 +108,133 @@ def format_barbell_pairs(plates_used):
 
 def show_percent_calculator():
     """Display the percent calculator page."""
-    display_logo_and_title()
+    st.markdown("""
+    <div style="max-width: 768px; margin: 0 auto; padding: 2rem 1rem;">
+        <!-- Back link -->
+        <div style="margin-bottom: 1rem;">
+            <a href="#" onclick="window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'home'}, '*')" class="back-link">
+                <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path d="M12.293 16.293a1 1 0 010 1.414l-6-6a1 1 0 010-1.414l6-6a1 1 0 111.414 1.414L8.414 10l5.293 5.293a1 1 0 01-1.414 1.414z"/>
+                </svg>
+                Back to Tools
+            </a>
+        </div>
+
+        <!-- Title -->
+        <h1 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 0.25rem;">Percent Calculator</h1>
+        <p style="font-size: 0.875rem; color: var(--muted); margin-bottom: 1.5rem;">Compute plate percentages quickly.</p>
+
+        <!-- Form -->
+        <div class="percent-form" style="margin-bottom: 2rem;">
+            <div>
+                <label style="display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.25rem;">Base weight</label>
+                <div class="input-group" id="baseWeightGroup">
+                    <button type="button" id="dec" aria-label="decrease">−</button>
+                    <input id="baseWeight" type="number" step="0.5" value="100" style="text-align: center;">
+                    <button type="button" id="inc" aria-label="increase">+</button>
+                </div>
+            </div>
+
+            <div>
+                <label style="display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.25rem;">Unit</label>
+                <select id="unit" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 12px; background: white;">
+                    <option value="lb">lb</option>
+                    <option value="kg">kg</option>
+                </select>
+            </div>
+
+            <div>
+                <label style="display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.25rem;">Rounding</label>
+                <select id="rounding" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 12px; background: white;">
+                    <option value="none">None</option>
+                    <option value="2.5">2.5</option>
+                    <option value="5">5</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <section>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+                <h2 style="font-size: 1.125rem; font-weight: 600;">Results</h2>
+                <button id="copyBtn" type="button" class="btn-ghost">Copy table</button>
+            </div>
+
+            <div style="overflow-x: auto; border-radius: 12px; border: 1px solid var(--border);">
+                <table id="resultsTable" class="results-table">
+                    <thead>
+                        <tr>
+                            <th>Percent</th>
+                            <th style="text-align: right;">Weight</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Rows injected by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <script>
+    (function () {
+        const w = document.getElementById('baseWeight');
+        const unit = document.getElementById('unit');
+        const rounding = document.getElementById('rounding');
+        const inc = document.getElementById('inc');
+        const dec = document.getElementById('dec');
+        const body = document.querySelector('#resultsTable tbody');
+        const copyBtn = document.getElementById('copyBtn');
+
+        function roundTo(val, step) {
+            if (!step || step === 'none') return val;
+            const s = parseFloat(step);
+            return Math.round(val / s) * s;
+        }
+
+        function fmt(val) {
+            return `${val} ${unit.value}`;
+        }
+
+        function render() {
+            const base = parseFloat(w.value || '0');
+            const steps = Array.from({length: 21}, (_, i) => i * 5); // 0..100 by 5s
+            body.innerHTML = steps.map(p => {
+                const raw = (base * p) / 100;
+                const r = roundTo(raw, rounding.value);
+                const v = Number.isFinite(r) ? r.toFixed(1) : '0.0';
+                return `<tr>
+                          <td>${p}%</td>
+                          <td style="text-align: right;">${v} ${unit.value}</td>
+                        </tr>`;
+            }).join('');
+        }
+
+        inc?.addEventListener('click', () => { w.stepUp(); render(); });
+        dec?.addEventListener('click', () => { w.stepDown(); render(); });
+        [w, unit, rounding].forEach(el => el?.addEventListener('input', render));
+        render();
+
+        copyBtn?.addEventListener('click', () => {
+            const rows = [['Percent','Weight']].concat(
+                [...body.querySelectorAll('tr')].map(tr => {
+                    const tds = tr.querySelectorAll('td');
+                    return [tds[0].textContent.trim(), tds[1].textContent.trim()];
+                })
+            );
+            const tsv = rows.map(r => r.join('\\t')).join('\\n');
+            navigator.clipboard.writeText(tsv);
+            copyBtn.textContent = 'Copied!';
+            setTimeout(() => copyBtn.textContent = 'Copy table', 1200);
+        });
+    })();
+    </script>
+    """, unsafe_allow_html=True)
     
-    # Back button
-    if st.button("← Back to Tools", use_container_width=True):
+    # Back button functionality
+    if st.button("← Back to Tools", key="back_btn", help="Return to main tools"):
         st.session_state.page = 'home'
         st.rerun()
-    
-    st.markdown("## Percent Calculator")
-    
-    # Input section
-    col1, col2 = st.columns([3, 1])
-    
-    with col1:
-        base_weight = st.number_input(
-            "Base weight",
-            min_value=0.0,
-            value=100.0,
-            step=1.0,
-            format="%.1f"
-        )
-    
-    with col2:
-        unit = st.selectbox("Unit", ["lb", "kg"], index=0)
-    
-    # Initialize session state for barbell setup visibility
-    if 'show_barbell' not in st.session_state:
-        st.session_state.show_barbell = {}
-    
-    # Generate percentage table with barbell setup buttons
-    st.markdown("#### Full Percentage Table")
-    if base_weight > 0:
-        # Get advanced options from session state or use defaults
-        rounding_direction = st.session_state.get('rounding_direction', 'Down')
-        smallest_increment = st.session_state.get('smallest_increment', 5.0)
-        
-        percentages = list(range(0, 105, 5))  # 0% to 100% in 5% increments
-        
-        for pct in percentages:
-            exact_value = base_weight * (pct / 100)
-            rounded_value = apply_rounding(exact_value, rounding_direction, smallest_increment)
-            
-            # Create columns for each row
-            row_col1, row_col2, row_col3, row_col4 = st.columns([1, 2, 2, 2])
-            
-            with row_col1:
-                st.write(f"**{pct}%**")
-            
-            with row_col2:
-                st.write(f"{exact_value:.2f} {unit}")
-            
-            with row_col3:
-                st.write(f"{rounded_value:.1f} {unit}")
-            
-            with row_col4:
-                button_key = f"barbell_{pct}"
-                if st.button("Show Barbell Setup", key=button_key):
-                    if button_key in st.session_state.show_barbell:
-                        del st.session_state.show_barbell[button_key]
-                    else:
-                        st.session_state.show_barbell[button_key] = True
-            
-            # Show barbell setup if button was clicked
-            if st.session_state.show_barbell.get(button_key, False):
-                setup_col1, setup_col2 = st.columns([1, 1])
-                
-                with setup_col1:
-                    st.markdown("**Male (45 lb bar):**")
-                    male_plates, male_total, male_status = calculate_barbell_setup(rounded_value, 45, unit)
-                    if male_plates:
-                        male_pairs = format_barbell_pairs(male_plates)
-                        st.code(male_pairs)
-                        st.write(f"Total: {male_total:.1f} {unit}")
-                    else:
-                        st.write(male_status)
-                
-                with setup_col2:
-                    st.markdown("**Female (35 lb bar):**")
-                    female_plates, female_total, female_status = calculate_barbell_setup(rounded_value, 35, unit)
-                    if female_plates:
-                        female_pairs = format_barbell_pairs(female_plates)
-                        st.code(female_pairs)
-                        st.write(f"Total: {female_total:.1f} {unit}")
-                    else:
-                        st.write(female_status)
-                
-                st.markdown("---")
-        
-        # Copy table functionality
-        data = []
-        for pct in percentages:
-            weight = base_weight * (pct / 100)
-            rounded_weight = apply_rounding(weight, rounding_direction, smallest_increment)
-            data.append({
-                "Percent": f"{pct}%",
-                "Exact": f"{weight:.2f} {unit}",
-                "Rounded": f"{rounded_weight:.1f} {unit}"
-            })
-        
-        df = pd.DataFrame(data)
-        csv_data = df.to_csv(index=False)
-        
-        if st.button("Copy Table", use_container_width=True):
-            st.code(csv_data, language=None)
-            st.success("Table data shown above - copy manually")
-    
-    else:
-        st.info("Enter a base weight to see percentage calculations")
-    
-    # Advanced options moved to bottom
-    st.markdown("---")
-    st.markdown("#### Advanced Options")
-    adv_col1, adv_col2 = st.columns([1, 1])
-    
-    with adv_col1:
-        rounding_direction = st.selectbox(
-            "Rounding Direction",
-            ["Down", "Up", "Nearest"],
-            index=0,
-            help="How to round the calculated weight",
-            key="rounding_direction_select"
-        )
-        st.session_state.rounding_direction = rounding_direction
-    
-    with adv_col2:
-        smallest_increment = st.selectbox(
-            "Smallest Increment",
-            [1.0, 2.5, 5.0, 10.0],
-            index=2,  # Default to 5.0
-            help="Round to nearest increment",
-            key="smallest_increment_select"
-        )
-        st.session_state.smallest_increment = smallest_increment
 
 def show_barbell_calculator():
     """Display the tap-to-build barbell calculator page."""
@@ -278,25 +273,21 @@ def show_barbell_calculator():
     
     # Calculate totals
     total_weight = calculate_total_weight(st.session_state.bar_weight, st.session_state.pair_counts)
-    per_side_weight = calculate_per_side_weight(st.session_state.pair_counts)
     
-    # Weight display chips
-    st.markdown("### Weight Summary")
-    chip_col1, chip_col2 = st.columns([1, 1])
-    
-    with chip_col1:
-        st.metric("Total", f"{total_weight:.1f} lb")
-    
-    with chip_col2:
-        st.metric("Per Side", f"{per_side_weight:.1f} lb")
-    
-    # Barbell visualization
-    st.markdown("### Barbell Visualization")
+    # Barbell visualization with weight display above it
     barbell_html = generate_barbell_visualization(st.session_state.bar_weight, st.session_state.pair_counts)
-    st.markdown(barbell_html, unsafe_allow_html=True)
+    
+    # Combine weight display and barbell visualization
+    combined_html = f'''
+    <div style="text-align: center; margin: 1rem 0;">
+        <div class="weight-display" style="margin-bottom: 0.5rem;">{total_weight:.0f} lbs</div>
+        {barbell_html}
+    </div>
+    '''
+    st.markdown(combined_html, unsafe_allow_html=True)
     
     # Plate buttons grid
-    st.markdown("### Add Plates")
+    st.markdown("### Add Weights")
     
     # Create grid of plate buttons (4 columns for mobile-friendly layout)
     plate_cols = st.columns([1, 1, 1, 1])
@@ -310,38 +301,24 @@ def show_barbell_calculator():
             # Plate button with color
             weight_str = f"{int(weight)}" if weight == int(weight) else f"{weight}"
             
-            # Add plate button
-            if st.button(f"+ {weight_str} lb", 
-                        key=f"add_{weight}",
-                        use_container_width=True):
+            if st.button(f"{weight_str} lb", 
+                        use_container_width=True,
+                        key=f"plate_{weight}"):
                 st.session_state.pair_counts[weight] += 1
                 st.rerun()
             
-            # Current count and remove button
+            # Show current count only
             if current_count > 0:
                 st.write(f"Pairs: {current_count}")
-                if st.button(f"- {weight_str}", 
-                            key=f"remove_{weight}",
-                            use_container_width=True):
-                    st.session_state.pair_counts[weight] = max(0, current_count - 1)
-                    st.rerun()
             else:
                 st.write("Pairs: 0")
     
-    # Per-side breakdown
-    breakdown_col1, breakdown_col2 = st.columns([1, 1])
-    
-    with breakdown_col1:
-        st.markdown("### Per Side")
-        breakdown_text = format_per_side_breakdown(st.session_state.pair_counts)
-        st.code(breakdown_text)
-    
-    with breakdown_col2:
-        # Clear bar button
-        st.markdown("### Actions")
-        if st.button("Clear Bar", use_container_width=True, type="secondary"):
-            st.session_state.pair_counts = {weight: 0 for weight in PLATE_WEIGHTS}
-            st.rerun()
+    # Clear bar button
+    if st.button("Clear Bar", use_container_width=True, type="secondary"):
+        # Reset all plate counts but keep bar selection
+        for weight in PLATE_WEIGHTS:
+            st.session_state.pair_counts[weight] = 0
+        st.rerun()
 
 # Navigation logic
 if st.session_state.page == 'percent':

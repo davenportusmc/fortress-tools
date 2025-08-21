@@ -3,7 +3,7 @@
 import streamlit as st
 from utils.branding import display_logo_and_title, apply_mobile_styles
 from utils.units import get_default_bar_weight, get_default_plates, convert_weight, format_weight
-from utils.plates import pack_plates, format_plate_stack, calculate_plate_colors
+from utils.plates import PLATE_WEIGHTS, PLATE_COLORS, calculate_total_weight, calculate_per_side_weight, format_per_side_breakdown, generate_barbell_visualization
 
 # Configure page
 st.set_page_config(
@@ -21,8 +21,8 @@ display_logo_and_title()
 
 # Back button
 if st.button("← Back to Tools", use_container_width=True):
-    st.session_state.page = 'home'
-    st.rerun()
+    # This page is standalone, redirect to main app
+    st.switch_page("app.py")
 
 st.markdown("## Barbell Calculator")
 
