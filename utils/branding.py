@@ -1,26 +1,38 @@
 """Branding utilities for Fortress Athlete tools."""
 
 import os
+import base64
 import streamlit as st
 
 
-def get_logo_url():
-    """Get the logo URL from environment variable or use Fortress Athlete default."""
-    return os.getenv(
-        "FORTRESS_LOGO_URL", 
-        "https://fortressathlete.com/wp-content/uploads/2024/09/Logo.webp"
-    )
+def get_logo_path():
+    """Get the local logo path."""
+    return "assets/fortress-logo.png"
+
+
+def _get_logo_base64(logo_path):
+    """Convert logo image to base64 for inline embedding."""
+    try:
+        with open(logo_path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode()
+    except Exception:
+        return ""
 
 
 def display_logo_and_title():
     """Display the logo and app title in the header."""
-    logo_url = get_logo_url()
+    logo_path = get_logo_path()
     
     col1, col2 = st.columns([1, 4])
     
     with col1:
         try:
-            st.image(logo_url, width=80)
+            # Create container with black background for logo
+            st.markdown("""
+            <div style="background-color: #000000; padding: 12px; border-radius: var(--radius-md); display: flex; justify-content: center; align-items: center; margin-bottom: 8px;">
+                <img src="data:image/png;base64,{}" style="max-width: 80px; height: auto;">
+            </div>
+            """.format(_get_logo_base64(logo_path)), unsafe_allow_html=True)
         except Exception:
             # Fallback to text if logo fails to load
             st.markdown("**FORTRESS**")

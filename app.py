@@ -15,8 +15,8 @@ from utils.plates import (
 st.set_page_config(
     page_title="Fortress Athlete Tools",
     page_icon="💪",
-    layout="centered",
-    initial_sidebar_state="collapsed"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
 # Apply styling
@@ -33,7 +33,7 @@ def show_home_page():
     st.markdown("---")
     
     # Navigation buttons
-    col1, col2 = st.columns(2)
+    col1, col2 = st.columns([1, 1])
     
     with col1:
         if st.button("Percent Calculator", use_container_width=True):
@@ -171,7 +171,7 @@ def show_percent_calculator():
             
             # Show barbell setup if button was clicked
             if st.session_state.show_barbell.get(button_key, False):
-                setup_col1, setup_col2 = st.columns(2)
+                setup_col1, setup_col2 = st.columns([1, 1])
                 
                 with setup_col1:
                     st.markdown("**Male (45 lb bar):**")
@@ -219,7 +219,7 @@ def show_percent_calculator():
     # Advanced options moved to bottom
     st.markdown("---")
     st.markdown("#### Advanced Options")
-    adv_col1, adv_col2 = st.columns(2)
+    adv_col1, adv_col2 = st.columns([1, 1])
     
     with adv_col1:
         rounding_direction = st.selectbox(
@@ -260,7 +260,7 @@ def show_barbell_calculator():
     
     # Bar selection buttons
     st.markdown("### Bar Selection")
-    bar_col1, bar_col2 = st.columns(2)
+    bar_col1, bar_col2 = st.columns([1, 1])
     
     with bar_col1:
         if st.button("45 lb Bar", 
@@ -282,7 +282,7 @@ def show_barbell_calculator():
     
     # Weight display chips
     st.markdown("### Weight Summary")
-    chip_col1, chip_col2 = st.columns(2)
+    chip_col1, chip_col2 = st.columns([1, 1])
     
     with chip_col1:
         st.metric("Total", f"{total_weight:.1f} lb")
@@ -299,7 +299,7 @@ def show_barbell_calculator():
     st.markdown("### Add Plates")
     
     # Create grid of plate buttons (4 columns for mobile-friendly layout)
-    plate_cols = st.columns(4)
+    plate_cols = st.columns([1, 1, 1, 1])
     
     for i, weight in enumerate(PLATE_WEIGHTS):
         col_idx = i % 4

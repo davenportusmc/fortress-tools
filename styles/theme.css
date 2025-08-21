@@ -222,3 +222,46 @@ select:focus-visible {
     font-size: 1rem;
   }
 }
+
+/* Mobile overrides */
+@media only screen and (max-width: 600px) {
+  .stApp {
+    font-size: 14px !important;
+    padding: 0.5rem !important;
+  }
+  
+  img {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+  
+  .block-container {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+  }
+  
+  .main > div {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+  }
+  
+  /* Ensure columns stack properly on mobile */
+  .stColumns {
+    flex-direction: column !important;
+  }
+  
+  /* Mobile-specific button sizing */
+  .stButton > button {
+    font-size: 16px !important;
+    padding: 0.75rem 1rem !important;
+    min-height: 44px !important;
+  }
+  
+  /* Mobile input sizing */
+  .stNumberInput > div > div > input,
+  .stSelectbox > div > div > div,
+  .stTextInput > div > div > input {
+    font-size: 16px !important;
+    min-height: 44px !important;
+  }
+}
